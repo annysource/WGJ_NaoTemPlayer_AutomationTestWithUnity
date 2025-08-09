@@ -10,9 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f0712ed360932dc48aa466ff79c2b89c, type: 3}
-  m_Name: PressButtonTest
+  m_Name: Grab
   m_EditorClassIdentifier: 
-  testName: PressButtonTest
-  actionType: 0
-  targetButton: {fileID: 8659642595127462415, guid: 336a192009b2eb84aa762c1f15c1b28d, type: 3}
-  expectedResultDescription: O painel de status deve atualizar
+  testName: Grab no Cubo
+  actionType: 1
+  targetButton: {fileID: 0}
+  targetInteractable: {fileID: 6640387835271095783, guid: 72138a47ec7b8714c91aa39dcdf3b714, type: 3}
+  expectedResultDescription: atualiza o log e o teste passa

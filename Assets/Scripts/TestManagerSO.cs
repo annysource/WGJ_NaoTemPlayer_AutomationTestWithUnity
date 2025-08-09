@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -11,12 +10,25 @@ public class TestManagerSO : MonoBehaviour
     public TMP_Text statusText;
     private List<string> testResults = new List<string>();
 
+    private void Start()
+    {
+        ShowTestCasesList();
+    }
     public void StartTests()
     {
         StartCoroutine(RunAllTests());
     }
 
-    public IEnumerator RunAllTests()
+    public void ShowTestCasesList()
+    {
+        statusText.text = "Casos de Teste Carregados:\n";
+        foreach (var testCase in testCases)
+        {
+            statusText.text += "- " + testCase.testName + "\n";
+        }
+    }
+
+    private IEnumerator RunAllTests()
     {
         testResults.Clear();
         for (int i = 0; i < testCases.Count; i++)
@@ -30,14 +42,14 @@ public class TestManagerSO : MonoBehaviour
             TestCaseExecutor executor = GetComponent<TestCaseExecutor>();
             if (executor != null)
             {
-                yield return StartCoroutine(executor.ExecuteTest(currentTest, result => passed = result));
+                yield return executor.ExecuteTest(currentTest, result => passed = result);
             }
             else
             {
                 Debug.LogError("TestCaseExecutor não encontrado.");
             }
 
-            string resultText = passed ? "PASS" : "FAIL";
+            string resultText = passed ? "<color=green>PASS</color>" : "<color=red>FAIL</color>";
             testResults.Add($"{currentTest.testName} - {resultText}");
 
             statusText.text = $"Testes executados: {i + 1}/{testCases.Count}\n";
@@ -48,24 +60,24 @@ public class TestManagerSO : MonoBehaviour
         }
         statusText.text += "\nTodos os testes finalizados.";
         Debug.Log("Todos os testes finalizados.");
-      
     }
 
-
-    public IEnumerator ExecuteTest(TestCaseSO testCase)
+    public void ExecuteSingleTest(TestCaseSO testCase, System.Action<bool> callback)
     {
-        
+        StartCoroutine(ExecuteSingleTestCoroutine(testCase, callback));
+    }
+
+    public IEnumerator ExecuteSingleTestCoroutine(TestCaseSO testCase, System.Action<bool> callback)
+    {
         TestCaseExecutor executor = GetComponent<TestCaseExecutor>();
         if (executor != null)
         {
-            bool passed = false;
-            yield return executor.ExecuteTest(testCase, result => passed = result);
-            // Aqui você pode adicionar validação e logging de sucesso/falha
-            Debug.Log($"Teste {(passed ? "PASSOU" : "FALHOU")}: (testCase.testName");
+            yield return executor.ExecuteTest(testCase, callback);
         }
         else
         {
-            Debug.LogError("TestCaseExecutor não encontrado no GameObject.");
+            Debug.LogError("TestCaseExecutor não encontrado.");
+            callback?.Invoke(false);
         }
     }
 }

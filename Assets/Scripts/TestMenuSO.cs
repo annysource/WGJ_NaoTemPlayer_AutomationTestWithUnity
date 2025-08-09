@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;  // Caso queira usar TMP para texto
 
 public class TestMenuSO : MonoBehaviour
 {
@@ -24,6 +25,8 @@ public class TestMenuSO : MonoBehaviour
         {
             GameObject toggleGO = Instantiate(togglePrefab, toggleParent);
             Toggle toggle = toggleGO.GetComponent<Toggle>();
+            // Se estiver usando TextMeshPro para o texto do toggle, substitua essa linha para:
+            // toggle.GetComponentInChildren<TMP_Text>().text = testCase.testName;
             toggle.GetComponentInChildren<Text>().text = testCase.testName;
             toggles.Add(toggle);
         }
@@ -52,7 +55,12 @@ public class TestMenuSO : MonoBehaviour
     {
         foreach (var test in selectedTests)
         {
-            yield return testManager.ExecuteTest(test);
+            bool passed = false;
+            // Executa cada teste com callback para receber o resultado
+            yield return testManager.ExecuteSingleTestCoroutine(test, result => passed = result);
+
+            Debug.Log($"Teste {test.testName} {(passed ? "PASSOU" : "FALHOU")}");
+            // Aqui você pode atualizar um painel UI com o resultado se quiser
         }
         Debug.Log("Execução dos testes selecionados finalizada.");
     }
