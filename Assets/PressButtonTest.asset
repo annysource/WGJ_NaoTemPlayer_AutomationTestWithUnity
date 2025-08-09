@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   testName: PressButtonTest
   actionType: 0
-  targetButton: {fileID: 0}
-  expectedResultDescription: 
+  targetButton: {fileID: 4899213150403158526, guid: 8498132788f94e543b1c2ad4bdfe799e, type: 3}
+  expectedResultDescription: O painel de status deve abrir

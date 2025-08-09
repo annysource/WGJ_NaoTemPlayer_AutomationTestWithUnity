@@ -2,29 +2,53 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 public class TestManagerSO : MonoBehaviour
 {
     [Tooltip("Lista de casos de teste scriptable objects")]
     public List<TestCaseSO> testCases;
+    public TMP_Text statusText;
+    private List<string> testResults = new List<string>();
 
-    private int currentIndex = 0;
+    public void StartTests()
+    {
+        StartCoroutine(RunAllTests());
+    }
 
     public IEnumerator RunAllTests()
     {
-        while (currentIndex < testCases.Count)
+        testResults.Clear();
+        for (int i = 0; i < testCases.Count; i++)
         {
-            TestCaseSO currentTest = testCases[currentIndex];
+            TestCaseSO currentTest = testCases[i];
+            statusText.text = $"Executando teste: {currentTest.testName}";
             Debug.Log($"Executando teste {currentTest.testName}");
 
-            // Executa o teste, assumindo que você tenha um executor separado
-            yield return StartCoroutine(ExecuteTest(currentTest));
+            bool passed = false;
 
-            currentIndex++;
+            TestCaseExecutor executor = GetComponent<TestCaseExecutor>();
+            if (executor != null)
+            {
+                yield return StartCoroutine(executor.ExecuteTest(currentTest, result => passed = result));
+            }
+            else
+            {
+                Debug.LogError("TestCaseExecutor não encontrado.");
+            }
+
+            string resultText = passed ? "PASS" : "FAIL";
+            testResults.Add($"{currentTest.testName} - {resultText}");
+
+            statusText.text = $"Testes executados: {i + 1}/{testCases.Count}\n";
+            foreach (var r in testResults)
+            {
+                statusText.text += r + "\n";
+            }
         }
-
+        statusText.text += "\nTodos os testes finalizados.";
         Debug.Log("Todos os testes finalizados.");
-        currentIndex = 0;
+      
     }
 
 
