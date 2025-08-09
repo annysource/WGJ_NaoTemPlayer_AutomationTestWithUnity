@@ -2,8 +2,9 @@ using UnityEngine;
 using System.Collections;
 public class TestCaseExecutor : MonoBehaviour
 {
-    public IEnumerator ExecuteTest(TestCaseSO testCase)
+    public IEnumerator ExecuteTest(TestCaseSO testCase, System.Action<bool> callback)
     {
+        bool passed = false;
         Debug.Log($"Iniciando teste: {testCase.testName}");
 
         switch (testCase.actionType)
@@ -17,19 +18,27 @@ public class TestCaseExecutor : MonoBehaviour
                     {
                         testable.Perform("press");
                         Debug.Log("Botão pressionado via Testable.");
+                        passed = true;
                     }
                     else
                     {
                         Debug.LogWarning("O botão não tem componente ITestable, acionando evento padrão.");
-                        // Alternativa: chamar evento ou método no botão
                         var button = testCase.targetButton.GetComponent<UnityEngine.UI.Button>();
                         if (button != null)
+                        {
                             button.onClick.Invoke();
+                            passed = true;
+                        }
+                        else
+                        {
+                            Debug.LogWarning("O botão UI nao encontrado no targetButton.");
+                        }
+
                     }
                 }
                 else
                 {
-                    Debug.LogWarning("TargetButton não atribuído.");
+                    Debug.LogWarning("TargetButton nao atribuído");
                 }
                 break;
 
@@ -38,6 +47,7 @@ public class TestCaseExecutor : MonoBehaviour
                 break;
         }
 
-        yield return null;
+        yield return new WaitForSeconds(0.5f);
+        callback?.Invoke(passed);
     }
 }

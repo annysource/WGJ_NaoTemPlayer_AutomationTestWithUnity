@@ -30,12 +30,14 @@ public class TestManagerSO : MonoBehaviour
 
     public IEnumerator ExecuteTest(TestCaseSO testCase)
     {
-        // Use o executor que você já tem:
+        
         TestCaseExecutor executor = GetComponent<TestCaseExecutor>();
         if (executor != null)
         {
-            yield return executor.ExecuteTest(testCase);
+            bool passed = false;
+            yield return executor.ExecuteTest(testCase, result => passed = result);
             // Aqui você pode adicionar validação e logging de sucesso/falha
+            Debug.Log($"Teste {(passed ? "PASSOU" : "FALHOU")}: (testCase.testName");
         }
         else
         {
