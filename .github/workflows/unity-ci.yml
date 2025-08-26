@@ -1,0 +1,74 @@
+﻿name: Build and Test VR Game
+
+on:
+  push:
+    branches: [UTestFramework]
+
+jobs:
+  build:
+    name: Build APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Cache Unity
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/unity3d
+            ~/.local/share/unity3d
+          key: ${{ runner.os }}-unity-${{ hashFiles('**/Packages/manifest.json') }}
+
+      - name: Build APK
+        uses: game-ci/unity-builder@v4
+        with:
+          targetPlatform: Android
+          unityVersion: 6000.1.7f1
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: game-apk
+          path: build/Android/*.apk
+
+  test:
+    name: Smoke Test (Device)
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Download APK
+        uses: actions/download-artifact@v3
+        with:
+          name: game-apk
+
+      - name: Install ADB
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y android-tools-adb
+
+      - name: Connect and install APK
+        run: |
+          adb start-server
+          adb devices
+          adb install -r build/Android/*.apk
+          adb shell monkey -p com.unity.automationtest.vr -c android.intent.category.LAUNCHER 1
+          sleep 10
+
+      - name: Pull test log
+        run: |
+          adb shell run-as com.unity.automationtest.vr cat /data/data/com.unity.automationtest.vr/files/test-results.txt > results.txt
+          cat results.txt
+
+      - name: Fail if tests failed
+        run: |
+          if grep -q "❌" results.txt; then
+            echo "Smoke test falhou!"
+            exit 1
+          else
+            echo "Smoke test passou!"
+          fi
