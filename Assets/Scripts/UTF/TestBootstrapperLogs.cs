@@ -2,6 +2,7 @@
 using UnityEngine.XR;
 using System.Collections;
 using System.IO;
+using UnityEngine.SceneManagement;
 
 public class TestBootstrapperLogs : MonoBehaviour
 {
@@ -62,6 +63,21 @@ public class TestBootstrapperLogs : MonoBehaviour
             else
             {
                 writer.WriteLine("✅ Controle direito detectado");
+            }
+
+            string mainSceneName = "GameScene"; 
+            Scene activeScene = SceneManager.GetActiveScene();
+
+            if (activeScene.name != mainSceneName)
+            {
+                Debug.LogError($"❌ Cena principal não carregada. Cena atual: {activeScene.name}");
+                writer.WriteLine($"❌ Cena principal não carregada. Cena atual: {activeScene.name}");
+                allPassed = false;
+            }
+            else
+            {
+                Debug.Log($"✅ Cena principal '{mainSceneName}' carregada corretamente");
+                writer.WriteLine($"✅ Cena principal '{mainSceneName}' carregada corretamente");
             }
 
             writer.WriteLine("Resultado Final: " + (allPassed ? "✅ PASSOU" : "❌ FALHOU"));

@@ -4,6 +4,9 @@ on:
   push:
     branches: [UTestFramework]
 
+env:
+  BUNDLE_ID: com.unity.automationtest.vr  # Facilita manutenção
+
 jobs:
   build:
     name: Build APK
@@ -56,19 +59,22 @@ jobs:
           adb start-server
           adb devices
           adb install -r build/Android/*.apk
-          adb shell monkey -p com.unity.automationtest.vr -c android.intent.category.LAUNCHER 1
-          sleep 10
+          # Lançar o app e aguardar inicialização
+          adb shell monkey -p $BUNDLE_ID -c android.intent.category.LAUNCHER 1
+          echo "Aguardando 20 segundos para inicialização do app..."
+          sleep 20
 
       - name: Pull test log
         run: |
-          adb shell run-as com.unity.automationtest.vr cat /data/data/com.unity.automationtest.vr/files/test-results.txt > results.txt
+          adb shell run-as $BUNDLE_ID cat /data/data/$BUNDLE_ID/files/test-results.txt > results.txt
+          echo "=== Conteúdo do log ==="
           cat results.txt
 
       - name: Fail if tests failed
         run: |
           if grep -q "❌" results.txt; then
-            echo "Smoke test falhou!"
+            echo "❌ Smoke test falhou!"
             exit 1
           else
-            echo "Smoke test passou!"
+            echo "✅ Smoke test passou!"
           fi
